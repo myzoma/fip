@@ -359,6 +359,40 @@ calculateFibonacciLevels(high, low, currentPrice) {
     
     return null;
 }
+// أضف هذه الدالة إذا لم تكن موجودة
+renderFibonacciLevels(coin) {
+    if (!coin.fibonacciData || !coin.fibonacciData.levels) return '';
+    
+    const levels = coin.fibonacciData.levels;
+    let html = '<div class="fibonacci-levels-container">';
+    
+    // عرض أهم 3 مستويات تصحيح
+    html += '<div class="key-levels">';
+    html += '<h4>🎯 المستويات الرئيسية:</h4>';
+    
+    // المستويات الذهبية الأهم
+    const keyLevels = [38.2, 50, 61.8, 78.6];
+    
+    keyLevels.forEach(ratio => {
+        if (levels.retracements && levels.retracements[ratio]) {
+            const level = levels.retracements[ratio];
+            const isNearPrice = Math.abs(coin.price - level) / coin.price < 0.02;
+            const levelClass = isNearPrice ? 'near-price' : '';
+            const strength = this.getLevelImportance(ratio);
+            
+            html += `
+                <div class="fib-level ${levelClass} ${strength}">
+                    <span class="ratio">${ratio}%</span>
+                    <span class="price">$${level.toFixed(4)}</span>
+                    <span class="strength-indicator">${this.getStrengthText(strength)}</span>
+                </div>
+            `;
+        }
+    });
+    
+    html += '</div></div>';
+    return html;
+}
 
     
    getNextSupportLevel(currentRatio, retracements) {
@@ -523,6 +557,59 @@ createCoinCard(coin) {
             </div>
         </div>
         
+        createCoinCard(coin) {
+    const card = document.createElement('div');
+    const signal = coin.signals[0];
+    const signalClass = signal.type === 'resistance_break' ? 'resistance-break' : 'support-break';
+    
+    card.className = `coin-card ${signalClass}`;
+    
+    const changeClass = coin.change >= 0 ? 'change-positive' : 'change-negative';
+    const changeSymbol = coin.change >= 0 ? '+' : '';
+    
+    const signalText = signal.type === 'resistance_break' ? 'اختراق مقاومة' : 'كسر دعم';
+    const signalBadgeClass = signal.type === 'resistance_break' ? 'signal-resistance' : 'signal-support';
+    
+    const cleanSymbol = coin.symbol.replace('-USDT', '').replace('USDT', '').replace('-', '');
+    
+    // إنشاء HTML لمستويات فيبوناتشي المحدثة
+    const fibonacciLevelsHTML = this.renderFibonacciLevels(coin);
+    
+    card.innerHTML = `
+        <div class="signal-badge ${signalBadgeClass}">
+            ${signalText} 
+            <span style="background: #00ff00; color: black; padding: 2px 6px; border-radius: 10px; font-size: 0.8em; margin-right: 5px;">
+                ${Math.round(coin.fibonacciData.confidence)}%
+            </span>
+        </div>
+        
+        <div class="coin-header">
+            <div class="coin-name">${cleanSymbol}</div>
+            <div class="coin-price">$${this.formatPrice(coin.price)}</div>
+        </div>
+        
+        <div class="coin-info">
+            <div class="info-item">
+                <div class="info-label">نسبة التغيير</div>
+                <div class="info-value ${changeClass}">${changeSymbol}${coin.change.toFixed(2)}%</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">الحجم</div>
+                <div class="info-value">${this.formatVolume(coin.volume)}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">المستوى الحالي</div>
+                <div class="info-value">${signal.level}%</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">سعر المستوى</div>
+                <div class="info-value">$${this.formatPrice(signal.price)}</div>
+            </div>
+        </div>
+        
+        <!-- المستويات المحدثة مع التصنيف -->
+        ${fibonacciLevelsHTML}
+        
         <div class="fibonacci-info">
             <div class="fibonacci-level">
                 <span class="level-name">الهدف التالي</span>
@@ -531,10 +618,9 @@ createCoinCard(coin) {
             ${signal.nextTarget ? `
             <div class="fibonacci-level">
                 <span class="level-name">سعر الهدف</span>
-               <span class="level-value">
-    ${signal.nextTarget.price ? '$' + this.formatPrice(signal.nextTarget.price) : '$' + this.formatPrice(coin.low52w)}
-</span>
-
+                <span class="level-value">
+                    ${signal.nextTarget.price ? '$' + this.formatPrice(signal.nextTarget.price) : '$' + this.formatPrice(coin.low52w)}
+                </span>
             </div>
             <div class="fibonacci-level">
                 <span class="level-name">نوع المستوى</span>
@@ -557,6 +643,8 @@ createCoinCard(coin) {
     `;
     
     return card;
+}
+
 }
 
     
