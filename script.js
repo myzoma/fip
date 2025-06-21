@@ -9,6 +9,14 @@ class FibonacciIndicator {
         this.fibonacciRetracements = [0, 23.6, 38.2, 50, 61.8, 76.4, 100];
         this.fibonacciExtensions = [61.8, 100, 138.2, 161.8, 200, 261.8];
         
+        // قائمة العملات المستقرة المستبعدة
+        this.stableCoins = [
+            'USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP', 'USDD', 'FRAX',
+            'LUSD', 'SUSD', 'GUSD', 'HUSD', 'USDN', 'RSR', 'USTC', 'USDX',
+            'CUSD', 'DUSD', 'MUSD', 'NUSD', 'OUSD', 'PUSD', 'RUSD', 'SUSD',
+            'VUSD', 'WUSD', 'XUSD', 'YUSD', 'ZUSD', 'FDUSD', 'PYUSD'
+        ];
+        
         this.init();
     }
     
@@ -16,10 +24,10 @@ class FibonacciIndicator {
         this.bindEvents();
         this.loadData();
         
-        // تحديث البيانات كل 30 ثانية
+        // تحديث البيانات كل 5 دقائق (300000 مللي ثانية)
         setInterval(() => {
             this.loadData();
-        }, 30000);
+        }, 300000);
     }
     
     bindEvents() {
@@ -39,6 +47,12 @@ class FibonacciIndicator {
         });
     }
     
+    // فلترة العملات المستقرة
+    isStableCoin(symbol) {
+        const coinName = symbol.replace('USDT', '').replace('-USDT', '');
+        return this.stableCoins.includes(coinName.toUpperCase());
+    }
+    
     async loadData() {
         this.showLoading(true);
         this.hideError();
@@ -55,9 +69,13 @@ class FibonacciIndicator {
             this.renderCards();
             this.updateStats();
             
+            // إشعار بنجاح التحديث
+            NotificationManager.show('تم تحديث البيانات بنجاح', 'success');
+            
         } catch (error) {
             console.error('Error loading data:', error);
             this.showError();
+            NotificationManager.show('فشل في تحميل البيانات', 'error');
         } finally {
             this.showLoading(false);
         }
@@ -69,11 +87,13 @@ class FibonacciIndicator {
         
         const data = await response.json();
         
-        // فلترة العملات USDT فقط
+        // فلترة العملات USDT فقط واستبعاد العملات المستقرة
         const usdtPairs = data.filter(coin => 
             coin.symbol.endsWith('USDT') && 
+            !this.isStableCoin(coin.symbol) && // استبعاد العملات المستقرة
             parseFloat(coin.volume) > 1000000 && // حجم تداول أكبر من مليون
-            parseFloat(coin.priceChangePercent) !== 0
+            parseFloat(coin.priceChangePercent) !== 0 &&
+            parseFloat(coin.lastPrice) > 0.001 // استبعاد العملات ذات القيمة المنخفضة جداً
         );
         
         // الحصول على بيانات الشموع للتحليل الفني
@@ -107,11 +127,12 @@ class FibonacciIndicator {
         const result = await response.json();
         const data = result.data;
         
-        // فلترة العملات USDT فقط
+        // فلترة العملات USDT فقط واستبعاد العملات المستقرة
         const usdtPairs = data.filter(coin => 
             coin.instId.endsWith('-USDT') && 
+            !this.isStableCoin(coin.instId) && // استبعاد العملات المستقرة
             parseFloat(coin.vol24h) > 1000000 &&
-            parseFloat(coin.last) > 0
+            parseFloat(coin.last) > 0.001 // استبعاد العملات ذات القيمة المنخفضة جداً
         );
         
         const processedData = await Promise.all(
@@ -339,12 +360,15 @@ class FibonacciIndicator {
         const signalText = signal.type === 'resistance_break' ? 'اختراق مقاومة' : 'كسر دعم';
         const signalBadgeClass = signal.type === 'resistance_break' ? 'signal-resistance' : 'signal-support';
         
+        // تنظيف اسم العملة من العملات المستقرة
+        const cleanSymbol = coin.symbol.replace('USDT', '').replace('-USDT', '');
+        
         card.innerHTML = `
             <div class="signal-badge ${signalBadgeClass}">${signalText}</div>
             
             <div class="coin-header">
-                <div class="coin-name">${coin.symbol.replace('USDT', '').replace('-USDT', '')}</div>
-                <div class="coin-price">$${coin.price.toFixed(4)}</div>
+                <div class="coin-name">${cleanSymbol}</div>
+                <div class="coin-price">$${this.formatPrice(coin.price)}</div>
             </div>
             
             <div class="coin-info">
@@ -362,7 +386,7 @@ class FibonacciIndicator {
                 </div>
                 <div class="info-item">
                     <div class="info-label">سعر المستوى</div>
-                    <div class="info-value">$${signal.price.toFixed(4)}</div>
+                    <div class="info-value">$${this.formatPrice(signal.price)}</div>
                 </div>
             </div>
             
@@ -374,20 +398,24 @@ class FibonacciIndicator {
                 ${signal.nextTarget ? `
                 <div class="fibonacci-level">
                     <span class="level-name">سعر الهدف</span>
-                                      <span class="level-value">$${signal.nextTarget.price.toFixed(4)}</span>
+                    <span class="level-value">$${this.formatPrice(signal.nextTarget.price)}</span>
                 </div>
                 <div class="fibonacci-level">
                     <span class="level-name">نوع المستوى</span>
                     <span class="level-value">${signal.nextTarget.type === 'retracement' ? 'تصحيح' : 'امتداد'}</span>
                 </div>
+                <div class="fibonacci-level">
+                    <span class="level-name">الربح المحتمل</span>
+                    <span class="level-value">${this.calculatePotentialProfit(coin.price, signal.nextTarget.price)}%</span>
+                </div>
                 ` : ''}
                 <div class="fibonacci-level">
                     <span class="level-name">أعلى سعر</span>
-                    <span class="level-value">$${coin.high52w.toFixed(4)}</span>
+                    <span class="level-value">$${this.formatPrice(coin.high52w)}</span>
                 </div>
                 <div class="fibonacci-level">
                     <span class="level-name">أقل سعر</span>
-                    <span class="level-value">$${coin.low52w.toFixed(4)}</span>
+                    <span class="level-value">$${this.formatPrice(coin.low52w)}</span>
                 </div>
             </div>
         `;
@@ -395,7 +423,26 @@ class FibonacciIndicator {
         return card;
     }
     
-    formatVolume(volume) {
+    // تحسين تنسيق الأسعار
+    formatPrice(price) {
+        if (price >= 1000) {
+            return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else if (price >= 1) {
+            return price.toFixed(4);
+        } else if (price >= 0.01) {
+            return price.toFixed(6);
+        } else {
+            return price.toFixed(8);
+        }
+    }
+    
+    // حساب الربح المحتمل
+    calculatePotentialProfit(currentPrice, targetPrice) {
+        const profit = ((targetPrice - currentPrice) / currentPrice * 100);
+        return profit > 0 ? `+${profit.toFixed(2)}` : profit.toFixed(2);
+    }
+    
+      formatVolume(volume) {
         if (volume >= 1000000000) {
             return (volume / 1000000000).toFixed(2) + 'B';
         } else if (volume >= 1000000) {
@@ -418,6 +465,29 @@ class FibonacciIndicator {
         document.getElementById('resistanceBreakCount').textContent = resistanceBreaks;
         document.getElementById('supportBreakCount').textContent = supportBreaks;
         document.getElementById('totalCoinsCount').textContent = this.coins.length;
+        
+        // تحديث وقت آخر تحديث
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('ar-SA', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        // إضافة عنصر لعرض وقت آخر تحديث إذا لم يكن موجوداً
+        let lastUpdateElement = document.getElementById('lastUpdate');
+        if (!lastUpdateElement) {
+            lastUpdateElement = document.createElement('div');
+            lastUpdateElement.id = 'lastUpdate';
+            lastUpdateElement.style.cssText = `
+                text-align: center;
+                color: var(--text-muted);
+                font-size: 0.9rem;
+                margin-top: 10px;
+            `;
+            document.querySelector('.stats').appendChild(lastUpdateElement);
+        }
+        lastUpdateElement.textContent = `آخر تحديث: ${timeString}`;
     }
     
     showLoading(show) {
@@ -443,23 +513,7 @@ class FibonacciIndicator {
     }
 }
 
-// تشغيل التطبيق
-document.addEventListener('DOMContentLoaded', () => {
-    new FibonacciIndicator();
-});
-
-// إضافة معالج للأخطاء العامة
-window.addEventListener('error', (e) => {
-    console.error('Global error:', e.error);
-});
-
-// إضافة معالج للوعود المرفوضة
-window.addEventListener('unhandledrejection', (e) => {
-    console.error('Unhandled promise rejection:', e.reason);
-    e.preventDefault();
-});
-
-// إضافة وظائف مساعدة إضافية
+// وظائف مساعدة متقدمة
 class FibonacciUtils {
     static calculatePotentialProfit(currentPrice, targetPrice) {
         return ((targetPrice - currentPrice) / currentPrice * 100).toFixed(2);
@@ -489,7 +543,7 @@ class FibonacciUtils {
     }
 }
 
-// إضافة وظائف التحليل المتقدم
+// تحليل متقدم
 class AdvancedAnalysis {
     static calculateTrend(klineData) {
         if (klineData.length < 10) return 'غير محدد';
@@ -536,7 +590,7 @@ class AdvancedAnalysis {
     }
 }
 
-// تحسين معالجة الأخطاء
+// معالجة الأخطاء
 class ErrorHandler {
     static handleAPIError(error, exchange) {
         console.error(`خطأ في API ${exchange}:`, error);
@@ -566,13 +620,10 @@ class ErrorHandler {
         };
         
         console.error('تفاصيل الخطأ:', errorInfo);
-        
-        // يمكن إرسال الخطأ إلى خدمة مراقبة الأخطاء هنا
-        // مثل Sentry أو LogRocket
     }
 }
 
-// إضافة وظائف الإشعارات
+// نظام الإشعارات
 class NotificationManager {
     static show(message, type = 'info') {
         const notification = document.createElement('div');
@@ -589,6 +640,8 @@ class NotificationManager {
             font-weight: 600;
             z-index: 10000;
             animation: slideIn 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
         `;
         
         switch (type) {
@@ -611,39 +664,116 @@ class NotificationManager {
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => {
-                document.body.removeChild(notification);
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
             }, 300);
         }, 3000);
     }
 }
 
-// إضافة الأنيميشن للإشعارات في CSS
-const notificationStyles = `
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
+// تشغيل التطبيق
+document.addEventListener('DOMContentLoaded', () => {
+    new FibonacciIndicator();
+    
+    // إضافة مؤشر التحديث التلقائي
+    const autoUpdateIndicator = document.createElement('div');
+    autoUpdateIndicator.id = 'autoUpdateIndicator';
+    autoUpdateIndicator.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: var(--bg-card);
+        color: var(--text-light);
+        padding: 10px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        border: 1px solid var(--primary-color);
+        z-index: 1000;
+    `;
+    autoUpdateIndicator.innerHTML = `
+        <i class="fas fa-sync-alt" style="margin-left: 5px; animation: spin 2s linear infinite;"></i>
+        تحديث تلقائي كل 5 دقائق
+    `;
+    document.body.appendChild(autoUpdateIndicator);
+    
+    // إضافة عداد للتحديث التالي
+    let nextUpdateCountdown = 300; // 5 دقائق بالثواني
+    
+    setInterval(() => {
+        nextUpdateCountdown--;
+        if (nextUpdateCountdown <= 0) {
+            nextUpdateCountdown = 300;
+        }
+        
+        const minutes = Math.floor(nextUpdateCountdown / 60);
+        const seconds = nextUpdateCountdown % 60;
+        
+        autoUpdateIndicator.innerHTML = `
+            <i class="fas fa-clock" style="margin-left: 5px;"></i>
+            التحديث التالي خلال ${minutes}:${seconds.toString().padStart(2, '0')}
+        `;
+    }, 1000);
+});
+
+// معالجة الأخطاء العامة
+window.addEventListener('error', (e) => {
+    console.error('Global error:', e.error);
+    ErrorHandler.logError(e.error, 'Global Error');
+});
+
+// معالجة الوعود المرفوضة
+window.addEventListener('unhandledrejection', (e) => {
+    console.error('Unhandled promise rejection:', e.reason);
+    ErrorHandler.logError(e.reason, 'Unhandled Promise Rejection');
+    e.preventDefault();
+});
+
+// إضافة وظائف إضافية للتحسين
+class PerformanceMonitor {
+    static startTimer(label) {
+        console.time(label);
     }
-    to {
-        transform: translateX(0);
-        opacity: 1;
+    
+    static endTimer(label) {
+        console.timeEnd(label);
+    }
+    
+    static logMemoryUsage() {
+        if (performance.memory) {
+            console.log('Memory Usage:', {
+                used: Math.round(performance.memory.usedJSHeapSize / 1048576) + ' MB',
+                total: Math.round(performance.memory.totalJSHeapSize / 1048576) + ' MB',
+                limit: Math.round(performance.memory.jsHeapSizeLimit / 1048576) + ' MB'
+            });
+        }
     }
 }
 
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
+// إضافة مراقبة الأداء
+setInterval(() => {
+    PerformanceMonitor.logMemoryUsage();
+}, 60000); // كل دقيقة
+
+// إضافة دعم للوضع المظلم/الفاتح
+class ThemeManager {
+    static toggleTheme() {
+        const body = document.body;
+        body.classList.toggle('light-theme');
+        
+        const theme = body.classList.contains('light-theme') ? 'light' : 'dark';
+        localStorage.setItem('theme', theme);
     }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
+    
+    static loadTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-theme');
+        }
     }
 }
-`;
 
-// إضافة الأنيميشن إلى الصفحة
-const styleSheet = document.createElement('style');
-styleSheet.textContent = notificationStyles;
-document.head.appendChild(styleSheet);
-
+// تحميل الثيم المحفوظ
+document.addEventListener('DOMContentLoaded', () => {
+    ThemeManager.loadTheme();
+});
