@@ -315,18 +315,27 @@ init() {
         };
     }
     
-    getNextSupportLevel(currentRatio, retracements) {
-        const currentIndex = this.fibonacciRetracements.indexOf(currentRatio);
-        if (currentIndex < this.fibonacciRetracements.length - 1) {
-            const nextRatio = this.fibonacciRetracements[currentIndex + 1];
-            return {
-                type: 'retracement',
-                ratio: nextRatio,
-                price: retracements[nextRatio]
-            };
-        }
-        return null;
+   getNextSupportLevel(currentRatio, retracements) {
+    const currentIndex = this.fibonacciRetracements.indexOf(currentRatio);
+    
+    // البحث عن المستوى التالي للأسفل (رقم أكبر = سعر أقل)
+    for (let i = currentIndex + 1; i < this.fibonacciRetracements.length; i++) {
+        const nextRatio = this.fibonacciRetracements[i];
+        return {
+            type: 'retracement',
+            ratio: nextRatio,
+            price: retracements[nextRatio]
+        };
     }
+    
+    // إذا وصل لآخر مستوى، الهدف هو أقل سعر في 50 يوم
+    return {
+        type: 'breakdown',
+        ratio: 'أقل سعر',
+        price: null // سيتم حسابه من low52w
+    };
+}
+
     
     processData(data) {
         this.coins = data.map(coin => {
@@ -458,7 +467,10 @@ createCoinCard(coin) {
             ${signal.nextTarget ? `
             <div class="fibonacci-level">
                 <span class="level-name">سعر الهدف</span>
-                <span class="level-value">$${this.formatPrice(signal.nextTarget.price)}</span>
+               <span class="level-value">
+    ${signal.nextTarget.price ? '$' + this.formatPrice(signal.nextTarget.price) : '$' + this.formatPrice(coin.low52w)}
+</span>
+
             </div>
             <div class="fibonacci-level">
                 <span class="level-name">نوع المستوى</span>
