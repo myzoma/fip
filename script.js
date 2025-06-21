@@ -742,7 +742,7 @@ createCoinCard(coin) {
             }
         });
         
-        
+         }
 
 // وظائف مساعدة متقدمة
 class FibonacciUtils {
