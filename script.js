@@ -30,12 +30,14 @@ class FibonacciIndicator {
         this.coins = [];
         this.filteredCoins = [];
         this.currentFilter = 'all';
-         // إضافة متغيرات التتبع الجديدة ← هنا
-    this.trackedBreakouts = JSON.parse(localStorage.getItem('trackedBreakouts')) || [];
-    this.trackedBreakdowns = JSON.parse(localStorage.getItem('trackedBreakdowns')) || [];
-        // مستويات فيبوناتشي المصححة
-        this.fibonacciRetracements = [0, 23.6, 38.2, 50, 61.8, 76.4, 100];
-        this.fibonacciExtensions = [61.8, 100, 138.2, 161.8, 200, 261.8];
+        
+        // إضافة متغيرات التتبع الجديدة
+        this.trackedBreakouts = JSON.parse(localStorage.getItem('trackedBreakouts')) || [];
+        this.trackedBreakdowns = JSON.parse(localStorage.getItem('trackedBreakdowns')) || [];
+        
+        // مستويات فيبوناتشي المصححة ✅
+        this.fibonacciRetracements = [0, 23.6, 38.2, 50, 61.8, 78.6, 100];
+        this.fibonacciExtensions = [127.2, 161.8, 200, 261.8, 423.6];
         
         // قائمة العملات المستقرة المستبعدة
         this.stableCoins = [
@@ -741,6 +743,67 @@ createCoinCard(coin) {
                 });
             }
         });
+    }
+     // ← أضف الدوال الجديدة هنا (قبل إغلاق الكلاس)
+    
+    // تحديد أهمية المستوى
+    getLevelImportance(ratio) {
+        // المستويات الذهبية الأقوى (النسب الذهبية الحقيقية)
+        if ([61.8, 78.6, 161.8, 261.8].includes(ratio)) {
+            return 'golden-ratio'; // أقوى المستويات
+        }
+        // المستويات القوية
+        else if ([38.2, 50, 127.2].includes(ratio)) {
+            return 'strong-level';
+        }
+        // المستويات المتوسطة
+        else if ([23.6, 200].includes(ratio)) {
+            return 'medium-level';
+        }
+        // المستويات الضعيفة
+        else {
+            return 'weak-level';
+        }
+    }
+
+    // تحسين قوة الإشارة حسب النسب الصحيحة
+    calculateSignalStrength(ratio, currentPrice, level) {
+        // النسب الأقوى في فيبوناتشي
+        const strongLevels = [38.2, 50, 61.8, 78.6, 161.8, 261.8];
+        const mediumLevels = [23.6, 127.2, 200];
+        const weakLevels = [0, 100, 423.6];
+        
+        let baseStrength = 50;
+        
+        if (strongLevels.includes(ratio)) {
+            baseStrength = 85;
+        } else if (mediumLevels.includes(ratio)) {
+            baseStrength = 65;
+        } else if (weakLevels.includes(ratio)) {
+            baseStrength = 45;
+        }
+        
+        // تعديل القوة حسب المسافة
+        const distance = Math.abs(currentPrice - level);
+        const proximityBonus = Math.max(0, 15 - (distance * 1000));
+        
+        return Math.min(95, baseStrength + proximityBonus);
+    }
+
+    // نص وصف القوة
+    getStrengthText(strength) {
+        switch(strength) {
+            case 'golden-ratio': return '🥇 ذهبي';
+            case 'strong-level': return '💪 قوي';
+            case 'medium-level': return '⚡ متوسط';
+            case 'weak-level': return '📉 ضعيف';
+            default: return '';
+        }
+    }
+
+    // حساب المسافة
+    calculateDistance(currentPrice, targetPrice) {
+        return (((targetPrice - currentPrice) / currentPrice) * 100).toFixed(2);
     }
 } // ← هذا القوس مهم جداً لإغلاق FibonacciIndicator
 
