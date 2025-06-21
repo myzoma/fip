@@ -39,7 +39,7 @@ class FibonacciIndicator {
             'USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP', 'USDD', 'FRAX',
             'LUSD', 'SUSD', 'GUSD', 'HUSD', 'USDN', 'RSR', 'USTC', 'USDX',
             'CUSD', 'DUSD', 'MUSD', 'NUSD', 'OUSD', 'PUSD', 'RUSD', 'SUSD',
-            'VUSD', 'WUSD', 'XUSD', 'YUSD', 'ZUSD', 'FDUSD', 'PYUSD'
+            'VUSD', 'WUSD', 'XUSD', 'YUSD', 'ZUSD', 'FDUSD', 'PYUSD','DAI'
         ];
         
         this.init();
