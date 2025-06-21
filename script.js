@@ -1,3 +1,28 @@
+class SimpleFibonacciImprover {
+    improveSignal(price, fibLevels, signals) {
+        const confidence = this.calculateConfidence(price, fibLevels);
+        return {
+            confidence: confidence,
+            reliable: confidence > 80, // 80% أو أكثر
+            signals: signals
+        };
+    }
+    
+    calculateConfidence(price, levels) {
+        let closestDistance = Infinity;
+        Object.values(levels.retracements).forEach(level => {
+            const distance = Math.abs(price - level) / price * 100;
+            if (distance < closestDistance) {
+                closestDistance = distance;
+            }
+        });
+        
+        return Math.max(10, 100 - (closestDistance * 20));
+    }
+}
+
+// إنشاء المحسن
+const fibImprover = new SimpleFibonacciImprover();
 class FibonacciIndicator {
     constructor() {
         this.currentExchange = 'binance';
@@ -297,6 +322,16 @@ class FibonacciIndicator {
             const low = Math.min(...recentData.map(candle => candle.low));
             
             const fibonacciData = this.calculateFibonacciLevels(high, low, coin.price);
+
+// إضافة التحسين هنا
+const improved = fibImprover.improveSignal(coin.price, fibonacciData, fibonacciData.signals);
+fibonacciData.confidence = improved.confidence;
+fibonacciData.reliable = improved.reliable;
+
+// فقط إظهار الإشارات الموثوقة
+if (!improved.reliable) {
+    fibonacciData.signals = []; // إخفاء الإشارات الضعيفة
+}
             
             return {
                 ...coin,
@@ -364,7 +399,13 @@ createCoinCard(coin) {
     const cleanSymbol = coin.symbol.replace('USDT', '').replace('-USDT', '');
     
     card.innerHTML = `
-        <div class="signal-badge ${signalBadgeClass}">${signalText}</div>
+       <div class="signal-badge ${signalBadgeClass}">
+    ${signalText} 
+    <span style="background: #00ff00; color: black; padding: 2px 6px; border-radius: 10px; font-size: 0.8em; margin-right: 5px;">
+        ${Math.round(coin.fibonacciData.confidence)}%
+    </span>
+</div>
+
         
         <div class="coin-header">
             <div class="coin-name">${cleanSymbol}</div>
