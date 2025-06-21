@@ -66,10 +66,6 @@ class FibonacciIndicator {
 init() {
     this.bindEvents();
     this.loadData();
-
-    init() {
-        this.bindEvents();
-        this.loadData();
         
         // تحديث البيانات كل 5 دقائق (300000 مللي ثانية)
         setInterval(() => {
