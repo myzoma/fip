@@ -258,80 +258,64 @@ init() {
         }
     }
     
-    calculateFibonacciLevels(high, low, currentPrice) {
-        const range = high - low;
-        const levels = {
-            retracements: {},
-            extensions: {},
-            signals: []
-        };
-        
-        // حساب مستويات التصحيح
-        this.fibonacciRetracements.forEach(ratio => {
-            const level = high - (range * ratio / 100);
-            levels.retracements[ratio] = level;
-        });
-        
-        // حساب مستويات الامتداد
-        this.fibonacciExtensions.forEach(ratio => {
-            const level = high + (range * (ratio - 100) / 100);
-            levels.extensions[ratio] = level;
-        });
-        
-        // تحديد الإشارات
-        const tolerance = currentPrice * 0.005; // 0.5% tolerance
-        
-      
-        // فحص اختراق المقاومة (مستويات التصحيح)
-for (let ratio of this.fibonacciRetracements) {
-    const level = levels.retracements[ratio];
-    // التأكد من الاتجاه: السعر يجب أن يكون صاعد لاختراق المقاومة
-    if (currentPrice > level && currentPrice <= level + tolerance) {
+   calculateFibonacciLevels(high, low, currentPrice) {
+    const range = high - low;
+    const levels = {
+        retracements: {},
+        extensions: {},
+        signals: []
+    };
 
-                // العثور على المستوى التالي
-                const nextLevel = this.getNextResistanceLevel(ratio, levels.retracements, levels.extensions);
-                levels.signals.push({
-                   type: 'resistance_breakout',
-                    level: ratio,
-                    price: level,
-                    nextTarget: nextLevel
-                });
-                break;
-            }
-        }
-        
-        // فحص كسر الدعم (مستويات التصحيح)
-       // فحص كسر الدعم (مستويات التصحيح) - يجب أن يكون للأسفل فقط
-for (let ratio of [...this.fibonacciRetracements].reverse()) {
-    const level = levels.retracements[ratio];
-    if (currentPrice < level && currentPrice >= level - tolerance) {
+    // حساب مستويات التصحيح
+    this.fibonacciRetracements.forEach(ratio => {
+        const level = high - (range * ratio / 100);
+        levels.retracements[ratio] = level;
+    });
 
-                // العثور على المستوى التالي
-                const nextLevel = this.getNextSupportLevel(ratio, levels.retracements);
-                levels.signals.push({
-                    type: 'support_break',
-                    level: ratio,
-                    price: level,
-                    nextTarget: nextLevel
-                });
-                break;
-            }
+    // حساب مستويات الامتداد
+    this.fibonacciExtensions.forEach(ratio => {
+        const level = high + (range * (ratio - 100) / 100);
+        levels.extensions[ratio] = level;
+    });
+
+    // تحديد الإشارات
+    const tolerance = currentPrice * 0.005; // 0.5% tolerance
+
+    // فحص اختراق المقاومة (مستويات التصحيح)
+    for (let ratio of this.fibonacciRetracements) {
+        const level = levels.retracements[ratio];
+        if (currentPrice > level && currentPrice <= level + tolerance) {
+            const nextLevel = this.getNextResistanceLevel(ratio, levels.retracements, levels.extensions);
+            levels.signals.push({
+                type: 'resistance_breakout', // ← غيّر هذا فقط
+                level: ratio,
+                price: level,
+                nextTarget: nextLevel
+            });
+            break;
         }
-        
+    }
+
+    // فحص كسر الدعم (مستويات التصحيح)
+    for (let ratio of [...this.fibonacciRetracements].reverse()) {
+        const level = levels.retracements[ratio];
+        if (currentPrice < level && currentPrice >= level - tolerance) {
+            const nextLevel = this.getNextSupportLevel(ratio, levels.retracements);
+            levels.signals.push({
+                type: 'support_break',
+                level: ratio,
+                price: level,
+                nextTarget: nextLevel
+            });
+            break;
+        }
+    }
+
     this.fibonacciRetracements.reverse(); // إعادة الترتيب الأصلي
 
-// إصلاح بسيط لأنواع الإشارات
-levels.signals.forEach(signal => {
-    if (signal.type === 'resistance_break') {
-        signal.type = 'resistance_breakout';
-        signal.signalType = 'resistance_breakout';
-    } else if (signal.type === 'support_break') {
-        signal.signalType = 'support_break';
-    }
-});
-
-return levels;
+    return levels;
 }
+
     
    getNextResistanceLevel(currentRatio, retracements, extensions) {
     const ratios = this.fibonacciRetracements.sort((a, b) => a - b);
