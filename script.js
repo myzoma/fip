@@ -331,7 +331,7 @@ levels.signals.forEach(signal => {
 });
 
 return levels;
-
+}
     
    getNextResistanceLevel(currentRatio, retracements, extensions) {
     const ratios = this.fibonacciRetracements.sort((a, b) => a - b);
