@@ -742,27 +742,7 @@ createCoinCard(coin) {
             }
         });
         
-        this.trackedBreakdowns.forEach(tracked => {
-            if (!this.coins.find(coin => coin.symbol === tracked.symbol)) {
-                this.coins.push({
-                    symbol: tracked.symbol,
-                    price: tracked.price,
-                    change: 0,
-                    volume: 0,
-                    signals: [{
-                        type: 'support_break',
-                        level: tracked.breakLevel,
-                        price: tracked.breakPrice,
-                        nextTarget: tracked.nextTarget
-                    }],
-                    fibonacciData: { confidence: 85, reliable: true },
-                    high52w: tracked.price * 1.2,
-                    low52w: tracked.price * 0.8,
-                    isTracked: true
-                });
-            }
-        });
-    }
+        
 
 // وظائف مساعدة متقدمة
 class FibonacciUtils {
