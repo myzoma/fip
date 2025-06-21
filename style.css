@@ -231,32 +231,62 @@ body {
 .coin-info {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 15px;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 204, 255, 0.1);
 }
 
 .info-item {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.info-item:hover {
+    background: rgba(0, 204, 255, 0.1);
+    border-color: rgba(0, 204, 255, 0.3);
+    transform: translateY(-2px);
 }
 
 .info-label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .info-value {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-light);
+    font-size: 1rem;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    min-width: 60px;
+    display: inline-block;
 }
 
 .change-positive {
     color: var(--success-color);
+    background: rgba(0, 200, 83, 0.1);
+    border: 1px solid rgba(0, 200, 83, 0.3);
 }
 
 .change-negative {
     color: var(--danger-color);
+    background: rgba(255, 53, 71, 0.1);
+    border: 1px solid rgba(255, 53, 71, 0.3);
 }
 
 .fibonacci-info {
@@ -366,5 +396,172 @@ body {
     .signal-badge {
         font-size: 0.7rem;
         padding: 4px 8px;
+    }
+}
+/* تحسين تنسيق البطاقة بالكامل */
+.coin-card {
+    background: var(--bg-card);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 204, 255, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    padding-top: 50px;
+}
+
+.coin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    margin-top: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.coin-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-shadow: 0 2px 4px rgba(0, 204, 255, 0.3);
+}
+
+.coin-price {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-light);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 204, 255, 0.2);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* تحسين قسم فيبوناتشي */
+.fibonacci-info {
+    background: rgba(0, 204, 255, 0.08);
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    border: 1px solid rgba(0, 204, 255, 0.2);
+}
+
+.fibonacci-level {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.fibonacci-level:hover {
+    background: rgba(0, 204, 255, 0.1);
+    border-color: rgba(0, 204, 255, 0.3);
+}
+
+.fibonacci-level:last-child {
+    margin-bottom: 0;
+}
+
+.level-name {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.level-value {
+    font-weight: 700;
+    color: var(--secondary-color);
+    background: rgba(255, 215, 0, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+/* تحسين الشارة */
+.signal-badge {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    z-index: 10;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+}
+
+.signal-resistance {
+    background: linear-gradient(45deg, var(--success-color), #00e676);
+    color: white;
+    border: 1px solid rgba(0, 200, 83, 0.5);
+}
+
+.signal-support {
+    background: linear-gradient(45deg, var(--danger-color), #ff5722);
+    color: white;
+    border: 1px solid rgba(255, 53, 71, 0.5);
+}
+
+/* تحسين الاستجابة للشاشات الصغيرة */
+@media (max-width: 768px) {
+    .coin-info {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .info-item {
+        padding: 8px;
+    }
+    
+    .coin-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .coin-name {
+        font-size: 1.3rem;
+    }
+    
+    .coin-price {
+        font-size: 1.1rem;
+        padding: 6px 10px;
+    }
+    
+    .fibonacci-level {
+        padding: 6px 10px;
+    }
+    
+    .signal-badge {
+        font-size: 0.7rem;
+        padding: 6px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .coin-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+    
+    .info-label {
+        margin-bottom: 0;
+        margin-left: 10px;
     }
 }
