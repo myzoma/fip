@@ -323,50 +323,85 @@ for (let ratio of [...this.fibonacciRetracements].reverse()) {
         return levels;
     }
     
-    getNextResistanceLevel(currentRatio, retracements, extensions) {
-        // البحث عن مستوى المقاومة التالي في التصحيحات
-        const currentIndex = this.fibonacciRetracements.indexOf(currentRatio);
-        if (currentIndex > 0) {
-            const nextRatio = this.fibonacciRetracements[currentIndex - 1];
+   getNextResistanceLevel(currentRatio, retracements, extensions) {
+    const ratios = this.fibonacciRetracements.sort((a, b) => a - b);
+    const currentIndex = ratios.indexOf(currentRatio);
+    
+    // للمقاومة: نريد المستوى التالي للأعلى (رقم أصغر = سعر أعلى)
+    for (let i = currentIndex - 1; i >= 0; i--) {
+        const nextRatio = ratios[i];
+        const nextPrice = retracements[nextRatio];
+        
+        // التأكد أن السعر التالي أعلى من الحالي
+        if (nextPrice > retracements[currentRatio]) {
             return {
                 type: 'retracement',
                 ratio: nextRatio,
-                price: retracements[nextRatio]
+                price: nextPrice
             };
         }
-        
-        // إذا لم يوجد في التصحيحات، البحث في الامتدادات
-        const firstExtension = this.fibonacciExtensions[0];
-        return {
-            type: 'extension',
-            ratio: firstExtension,
-            price: extensions[firstExtension]
-        };
     }
+    
+    // إذا لم نجد في التصحيحات، نجرب الامتدادات
+    if (extensions) {
+        const extRatios = this.fibonacciExtensions.sort((a, b) => a - b);
+        for (let ratio of extRatios) {
+            const extPrice = extensions[ratio];
+            if (extPrice && extPrice > retracements[currentRatio]) {
+                return {
+                    type: 'extension',
+                    ratio: ratio,
+                    price: extPrice
+                };
+            }
+        }
+    }
+    
+    return null;
+}
+
     
    getNextSupportLevel(currentRatio, retracements) {
-    const currentIndex = this.fibonacciRetracements.indexOf(currentRatio);
+    const ratios = this.fibonacciRetracements.sort((a, b) => a - b);
+    const currentIndex = ratios.indexOf(currentRatio);
     
-    // البحث عن المستوى التالي للأسفل (رقم أكبر = سعر أقل)
-    for (let i = currentIndex + 1; i < this.fibonacciRetracements.length; i++) {
-        const nextRatio = this.fibonacciRetracements[i];
-        return {
-            type: 'retracement',
-            ratio: nextRatio,
-            price: retracements[nextRatio]
-        };
+    // للدعم: نريد المستوى التالي للأسفل (رقم أكبر = سعر أقل)
+    for (let i = currentIndex + 1; i < ratios.length; i++) {
+        const nextRatio = ratios[i];
+        const nextPrice = retracements[nextRatio];
+        
+        // التأكد أن السعر التالي أقل من الحالي
+        if (nextPrice < retracements[currentRatio]) {
+            return {
+                type: 'retracement',
+                ratio: nextRatio,
+                price: nextPrice
+            };
+        }
     }
     
-    // إذا وصل لآخر مستوى، الهدف هو أقل سعر في 50 يوم
-    return {
-        type: 'breakdown',
-        ratio: 'أقل سعر',
-        price: null // سيتم حسابه من low52w
-    };
+    return null;
 }
 
     
     processData(data) {
+        // فلترة العملات المستقرة والأخطاء
+    const filteredData = data.filter(coin => {
+        // استبعاد العملات المستقرة
+        const stableCoins = ['DAI', 'USDC', 'USDT', 'BUSD', 'TUSD', 'FRAX'];
+        const cleanSymbol = coin.symbol.replace('-USDT', '').replace('USDT', '');
+        
+        if (stableCoins.includes(cleanSymbol)) {
+            return false;
+        }
+        
+        // استبعاد العملات ذات البيانات الخاطئة
+        if (!coin.klineData || coin.klineData.length < 50) {
+            return false;
+        }
+        
+        return true;
+    });
         this.coins = data.map(coin => {
             if (!coin.klineData || coin.klineData.length < 20) {
                 return { ...coin, fibonacciData: null, signals: [] };
