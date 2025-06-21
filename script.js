@@ -281,7 +281,7 @@ init() {
         // تحديد الإشارات
         const tolerance = currentPrice * 0.005; // 0.5% tolerance
         
-        // فحص اختراق المقاومة (مستويات التصحيح)
+      
         // فحص اختراق المقاومة (مستويات التصحيح)
 for (let ratio of this.fibonacciRetracements) {
     const level = levels.retracements[ratio];
@@ -291,7 +291,7 @@ for (let ratio of this.fibonacciRetracements) {
                 // العثور على المستوى التالي
                 const nextLevel = this.getNextResistanceLevel(ratio, levels.retracements, levels.extensions);
                 levels.signals.push({
-                    type: 'resistance_break',
+                   type: 'resistance_breakout',
                     level: ratio,
                     price: level,
                     nextTarget: nextLevel
@@ -318,10 +318,38 @@ for (let ratio of [...this.fibonacciRetracements].reverse()) {
             }
         }
         
-        this.fibonacciRetracements.reverse(); // إعادة الترتيب الأصلي
-        
-        return levels;
+       this.fibonacciRetracements.reverse(); // إعادة الترتيب الأصلي
+
+// إصلاح أنواع الإشارات وإضافة التحقق
+if (levels.signals.length > 0) {
+    const signal = levels.signals[0];
+    
+    console.log(`🔍 فحص: السعر ${currentPrice}, المستوى ${signal.price}, النوع ${signal.type}`);
+    
+    // إصلاح نوع الإشارة
+    if (signal.type === 'resistance_break') {
+        signal.type = 'resistance_breakout';
+        signal.signalType = 'resistance_breakout';
+    } else if (signal.type === 'support_break') {
+        signal.signalType = 'support_break';
     }
+    
+    // تحقق إضافي للتأكد من صحة الإشارة
+    if (signal.signalType === 'resistance_breakout' && currentPrice <= signal.price) {
+        console.warn(`🔧 تصحيح: تغيير من resistance إلى support`);
+        signal.type = 'support_break';
+        signal.signalType = 'support_break';
+    }
+    
+    if (signal.signalType === 'support_break' && currentPrice >= signal.price) {
+        console.warn(`🔧 تصحيح: تغيير من support إلى resistance`);
+        signal.type = 'resistance_breakout';
+        signal.signalType = 'resistance_breakout';
+    }
+}
+
+return levels;
+
     
    getNextResistanceLevel(currentRatio, retracements, extensions) {
     const ratios = this.fibonacciRetracements.sort((a, b) => a - b);
