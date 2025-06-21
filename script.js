@@ -741,8 +741,8 @@ createCoinCard(coin) {
                 });
             }
         });
-        
-         }
+    }
+} // ← هذا القوس مهم جداً لإغلاق FibonacciIndicator
 
 // وظائف مساعدة متقدمة
 class FibonacciUtils {
