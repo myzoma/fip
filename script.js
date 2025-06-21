@@ -44,7 +44,29 @@ class FibonacciIndicator {
         
         this.init();
     }
-    
+    parseChangePercent(changePercent) {
+    try {
+        if (changePercent === null || changePercent === undefined || changePercent === '') {
+            return 0;
+        }
+        
+        let change = parseFloat(changePercent);
+        
+        if (Math.abs(change) <= 1) {
+            change = change * 100;
+        }
+        
+        return isNaN(change) ? 0 : change;
+    } catch (error) {
+        console.warn('خطأ في تحليل نسبة التغيير:', changePercent);
+        return 0;
+    }
+}
+
+init() {
+    this.bindEvents();
+    this.loadData();
+
     init() {
         this.bindEvents();
         this.loadData();
@@ -167,7 +189,7 @@ class FibonacciIndicator {
                     return {
                         symbol: coin.instId,
                         price: parseFloat(coin.last),
-                        change: parseFloat(coin.changePercent) * 100,
+                       change: this.parseChangePercent(coin.changePercent),
                         volume: parseFloat(coin.vol24h),
                         high24h: parseFloat(coin.high24h),
                         low24h: parseFloat(coin.low24h),
@@ -396,7 +418,8 @@ createCoinCard(coin) {
     const signalText = signal.type === 'resistance_break' ? 'اختراق مقاومة' : 'كسر دعم';
     const signalBadgeClass = signal.type === 'resistance_break' ? 'signal-resistance' : 'signal-support';
     
-    const cleanSymbol = coin.symbol.replace('USDT', '').replace('-USDT', '');
+   const cleanSymbol = coin.symbol.replace('-USDT', '').replace('USDT', '').replace('-', '');
+
     
     card.innerHTML = `
        <div class="signal-badge ${signalBadgeClass}">
