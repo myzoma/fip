@@ -595,7 +595,6 @@ createCoinCard(coin) {
     return card;
 }
 
-}
 
     
     // تحسين تنسيق الأسعار
