@@ -64,7 +64,7 @@ class FibonacciIndicator {
     }
     
     async fetchBinanceData() {
-        const response = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+        const response = await fetch('https://api1.binance.com/api/v3/ticker/24hr');
         if (!response.ok) throw new Error('Failed to fetch Binance data');
         
         const data = await response.json();
@@ -141,7 +141,7 @@ class FibonacciIndicator {
         try {
             let url;
             if (exchange === 'binance') {
-                url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=100`;
+                url = `https://api1.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=100`;
             } else {
                 url = `https://www.okx.com/api/v5/market/candles?instId=${symbol}&bar=1D&limit=100`;
             }
