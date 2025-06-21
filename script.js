@@ -374,7 +374,7 @@ class FibonacciIndicator {
                 ${signal.nextTarget ? `
                 <div class="fibonacci-level">
                     <span class="level-name">سعر الهدف</span>
-                    <span class="level-value">$${signal<span class="level-value">$${signal.nextTarget.price.toFixed(4)}</span>
+                                      <span class="level-value">$${signal.nextTarget.price.toFixed(4)}</span>
                 </div>
                 <div class="fibonacci-level">
                     <span class="level-name">نوع المستوى</span>
@@ -456,5 +456,194 @@ window.addEventListener('error', (e) => {
 // إضافة معالج للوعود المرفوضة
 window.addEventListener('unhandledrejection', (e) => {
     console.error('Unhandled promise rejection:', e.reason);
+    e.preventDefault();
 });
+
+// إضافة وظائف مساعدة إضافية
+class FibonacciUtils {
+    static calculatePotentialProfit(currentPrice, targetPrice) {
+        return ((targetPrice - currentPrice) / currentPrice * 100).toFixed(2);
+    }
+    
+    static calculateRiskReward(currentPrice, targetPrice, stopLoss) {
+        const reward = Math.abs(targetPrice - currentPrice);
+        const risk = Math.abs(currentPrice - stopLoss);
+        return (reward / risk).toFixed(2);
+    }
+    
+    static formatCurrency(amount, decimals = 4) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        }).format(amount);
+    }
+    
+    static formatPercentage(value) {
+        return new Intl.NumberFormat('ar-SA', {
+            style: 'percent',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(value / 100);
+    }
+}
+
+// إضافة وظائف التحليل المتقدم
+class AdvancedAnalysis {
+    static calculateTrend(klineData) {
+        if (klineData.length < 10) return 'غير محدد';
+        
+        const recent = klineData.slice(-10);
+        const older = klineData.slice(-20, -10);
+        
+        const recentAvg = recent.reduce((sum, candle) => sum + candle.close, 0) / recent.length;
+        const olderAvg = older.reduce((sum, candle) => sum + candle.close, 0) / older.length;
+        
+        if (recentAvg > olderAvg * 1.02) return 'صاعد';
+        if (recentAvg < olderAvg * 0.98) return 'هابط';
+        return 'جانبي';
+    }
+    
+    static calculateVolatility(klineData) {
+        if (klineData.length < 20) return 0;
+        
+        const prices = klineData.slice(-20).map(candle => candle.close);
+        const avg = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+        
+        const variance = prices.reduce((sum, price) => sum + Math.pow(price - avg, 2), 0) / prices.length;
+        const volatility = Math.sqrt(variance) / avg * 100;
+        
+        return volatility.toFixed(2);
+    }
+    
+    static calculateSupport(klineData) {
+        if (klineData.length < 20) return null;
+        
+        const lows = klineData.slice(-20).map(candle => candle.low);
+        lows.sort((a, b) => a - b);
+        
+        return lows[Math.floor(lows.length * 0.2)]; // 20th percentile
+    }
+    
+    static calculateResistance(klineData) {
+        if (klineData.length < 20) return null;
+        
+        const highs = klineData.slice(-20).map(candle => candle.high);
+        highs.sort((a, b) => b - a);
+        
+        return highs[Math.floor(highs.length * 0.2)]; // 80th percentile
+    }
+}
+
+// تحسين معالجة الأخطاء
+class ErrorHandler {
+    static handleAPIError(error, exchange) {
+        console.error(`خطأ في API ${exchange}:`, error);
+        
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            return 'خطأ في الاتصال بالشبكة. تحقق من اتصال الإنترنت.';
+        }
+        
+        if (error.message.includes('429')) {
+            return 'تم تجاوز حد الطلبات. يرجى المحاولة لاحقاً.';
+        }
+        
+        if (error.message.includes('403')) {
+            return 'غير مسموح بالوصول إلى البيانات.';
+        }
+        
+        return 'حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى.';
+    }
+    
+    static logError(error, context) {
+        const errorInfo = {
+            message: error.message,
+            stack: error.stack,
+            context: context,
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent
+        };
+        
+        console.error('تفاصيل الخطأ:', errorInfo);
+        
+        // يمكن إرسال الخطأ إلى خدمة مراقبة الأخطاء هنا
+        // مثل Sentry أو LogRocket
+    }
+}
+
+// إضافة وظائف الإشعارات
+class NotificationManager {
+    static show(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        switch (type) {
+            case 'success':
+                notification.style.background = 'var(--success-color)';
+                break;
+            case 'error':
+                notification.style.background = 'var(--danger-color)';
+                break;
+            case 'warning':
+                notification.style.background = 'var(--secondary-color)';
+                notification.style.color = 'var(--bg-dark)';
+                break;
+            default:
+                notification.style.background = 'var(--info-color)';
+        }
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+}
+
+// إضافة الأنيميشن للإشعارات في CSS
+const notificationStyles = `
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+`;
+
+// إضافة الأنيميشن إلى الصفحة
+const styleSheet = document.createElement('style');
+styleSheet.textContent = notificationStyles;
+document.head.appendChild(styleSheet);
 
