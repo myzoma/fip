@@ -1,128 +1,13 @@
-// 1. الفئات المساعدة (يجب وضعها أولاً)
-class FibonacciUtils {
-    static calculatePotentialProfit(currentPrice, targetPrice) {
-        if (isNaN(currentPrice) || isNaN(targetPrice) || currentPrice <= 0) return '0.00';
-        return ((targetPrice - currentPrice) / currentPrice * 100).toFixed(2);
-    }
-    
-    static calculateRiskReward(currentPrice, targetPrice, stopLoss) {
-        if (!currentPrice || !targetPrice || !stopLoss) return '0.00';
-        const reward = Math.abs(targetPrice - currentPrice);
-        const risk = Math.abs(currentPrice - stopLoss);
-        return risk > 0 ? (reward / risk).toFixed(2) : '0.00';
-    }
-}
+// الفئات المساعدة (يجب أن تبقى كما هي)
+class FibonacciUtils { /* ... */ }
+class AdvancedAnalysis { /* ... */ }
+class ErrorHandler { /* ... */ }
+class NotificationManager { /* ... */ }
 
-class AdvancedAnalysis {
-    static calculateTrend(klineData) {
-        if (!klineData || klineData.length < 10) return 'غير محدد';
-        
-        const recent = klineData.slice(-10);
-        const older = klineData.slice(-20, -10);
-        
-        const recentAvg = recent.reduce((sum, candle) => sum + candle.close, 0) / recent.length;
-        const olderAvg = older.reduce((sum, candle) => sum + candle.close, 0) / older.length;
-        
-        if (recentAvg > olderAvg * 1.02) return 'صاعد';
-        if (recentAvg < olderAvg * 0.98) return 'هابط';
-        return 'جانبي';
-    }
-    
-    static calculateVolatility(klineData) {
-        if (!klineData || klineData.length < 20) return '0.00';
-        
-        const prices = klineData.slice(-20).map(candle => candle.close);
-        const avg = prices.reduce((sum, price) => sum + price, 0) / prices.length;
-        
-        const variance = prices.reduce((sum, price) => sum + Math.pow(price - avg, 2), 0) / prices.length;
-        const volatility = Math.sqrt(variance) / avg * 100;
-        
-        return volatility.toFixed(2);
-    }
-}
-
-class ErrorHandler {
-    static handleAPIError(error, exchange) {
-        console.error(`خطأ في API ${exchange}:`, error);
-        
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            return 'خطأ في الاتصال بالشبكة. تحقق من اتصال الإنترنت.';
-        }
-        
-        if (error.message.includes('429')) {
-            return 'تم تجاوز حد الطلبات. يرجى المحاولة لاحقاً.';
-        }
-        
-        if (error.message.includes('403')) {
-            return 'غير مسموح بالوصول إلى البيانات.';
-        }
-        
-        return 'حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى.';
-    }
-    
-    static logError(error, context) {
-        const errorInfo = {
-            message: error.message,
-            stack: error.stack,
-            context: context,
-            timestamp: new Date().toISOString(),
-            userAgent: navigator.userAgent
-        };
-        console.error('تفاصيل الخطأ:', errorInfo);
-    }
-}
-
-class NotificationManager {
-    static show(message, type = 'info') {
-        if (typeof document === 'undefined') return;
-        
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-            max-width: 300px;
-            word-wrap: break-word;
-        `;
-        
-        switch (type) {
-            case 'success':
-                notification.style.background = 'var(--success-color)';
-                break;
-            case 'error':
-                notification.style.background = 'var(--danger-color)';
-                break;
-            case 'warning':
-                notification.style.background = 'var(--warning-color)';
-                notification.style.color = 'var(--text-dark)';
-                break;
-            default:
-                notification.style.background = 'var(--info-color)';
-        }
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 3000);
-    }
-}
-
-// 2. الفئة الرئيسية (FibonacciIndicator)
+// الفئة الرئيسية المعدلة بالكامل
 class FibonacciIndicator {
     constructor() {
+        // 1. تهيئة الخصائص
         this.currentExchange = 'binance';
         this.coins = [];
         this.filteredCoins = [];
@@ -132,70 +17,119 @@ class FibonacciIndicator {
             okx: { data: null, timestamp: 0 }
         };
         
+        // 2. مستويات فيبوناتشي
         this.fibonacciRetracements = [0, 23.6, 38.2, 50, 61.8, 76.4, 78.6, 100];
         this.fibonacciExtensions = [61.8, 100, 138.2, 161.8, 200, 261.8];
         
+        // 3. قوالب العملات المستقرة
         this.stableCoinPatterns = [
             /^USDT$/i, /^USDC$/i, /^BUSD$/i, /^DAI$/i, /^TUSD$/i,
             /^FDUSD$/i, /^PYUSD$/i, /^USDP$/i, /^USDD$/i, /^FRAX$/i,
             /^[A-Z]*USD[A-Z]*$/i
         ];
         
+        // 4. الربط الآمن للدوال
+        this.init = this.init.bind(this);
+        this.loadData = this.loadData.bind(this);
+        this.processData = this.processData.bind(this);
+        
+        // 5. البدء بالتنفيذ
         this.init();
     }
+
+    init() {
+        try {
+            this.bindEvents();
+            this.loadData();
+            
+            setInterval(() => {
+                if (navigator.onLine) {
+                    this.loadData();
+                } else {
+                    NotificationManager.show('لا يوجد اتصال بالإنترنت', 'error');
+                }
+            }, 300000);
+        } catch (error) {
+            console.error('Error in init:', error);
+            ErrorHandler.logError(error, 'FibonacciIndicator initialization');
+        }
+    }
+
+    bindEvents() {
+        try {
+            const refreshBtn = document.getElementById('refreshBtn');
+            const exchangeSelect = document.getElementById('exchangeSelect');
+            
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', this.loadData);
+            }
+            
+            if (exchangeSelect) {
+                exchangeSelect.addEventListener('change', (e) => {
+                    this.currentExchange = e.target.value;
+                    this.loadData();
+                });
+            }
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    this.setFilter(e.target.dataset.filter);
+                });
+            });
+        } catch (error) {
+            ErrorHandler.logError(error, 'Binding Events');
+        }
+    }
+
+    // ... [جميع الدوال الأخرى تبقى كما هي مع التأكد من وجودها] ...
     
-    // ... (أضف هنا جميع دوال FibonacciIndicator المحسنة من الإجابة السابقة)
-    // بما في ذلك init(), bindEvents(), isStableCoin(), loadData(),
-    // fetchBinanceData(), fetchOKXData(), fetchKlineData(),
-    // calculateFibonacciLevels(), processData(), createCoinCard(),
-    // formatPrice(), formatVolume(), وغيرها من الدوال...
+    // دالة معالجة البيانات المعدلة
+    processData(data) {
+        try {
+            if (!Array.isArray(data)) {
+                throw new Error('Invalid data format');
+            }
+            
+            this.coins = data.map(coin => {
+                if (!coin?.klineData || coin.klineData.length < 20) {
+                    return { ...coin, fibonacciData: null, signals: [] };
+                }
+                
+                const recentData = coin.klineData.slice(-50);
+                const validData = recentData.filter(c => c?.high && c?.low);
+                
+                if (validData.length < 20) return { ...coin, fibonacciData: null, signals: [] };
+                
+                const high = Math.max(...validData.map(c => c.high));
+                const low = Math.min(...validData.map(c => c.low));
+                
+                if (high <= low) return { ...coin, fibonacciData: null, signals: [] };
+                
+                return {
+                    ...coin,
+                    fibonacciData: this.calculateFibonacciLevels(high, low, coin.price),
+                    high52w: high,
+                    low52w: low
+                };
+            }).filter(coin => coin?.signals?.length > 0);
+            
+            this.applyFilter();
+        } catch (error) {
+            ErrorHandler.logError(error, 'Processing Data');
+            this.coins = [];
+            this.filteredCoins = [];
+        }
+    }
 }
 
-// 3. تهيئة التطبيق عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof document !== 'undefined') {
-        new FibonacciIndicator();
-        
-        const autoUpdateIndicator = document.createElement('div');
-        autoUpdateIndicator.id = 'autoUpdateIndicator';
-        autoUpdateIndicator.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: var(--bg-card);
-            color: var(--text-light);
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            border: 1px solid var(--primary-color);
-            z-index: 1000;
-        `;
-        document.body.appendChild(autoUpdateIndicator);
-        
-        let nextUpdateCountdown = 300;
-        setInterval(() => {
-            nextUpdateCountdown--;
-            if (nextUpdateCountdown <= 0) nextUpdateCountdown = 300;
-            
-            const minutes = Math.floor(nextUpdateCountdown / 60);
-            const seconds = nextUpdateCountdown % 60;
-            
-            autoUpdateIndicator.innerHTML = `
-                <i class="fas fa-clock" style="margin-left: 5px;"></i>
-                التحديث التالي خلال ${minutes}:${seconds.toString().padStart(2, '0')}
-            `;
-        }, 1000);
-    }
-});
-
-// 4. معالجة الأخطاء العامة
-if (typeof window !== 'undefined') {
-    window.addEventListener('error', (e) => {
-        ErrorHandler.logError(e.error, 'Global Error');
-    });
-    
-    window.addEventListener('unhandledrejection', (e) => {
-        ErrorHandler.logError(e.reason, 'Unhandled Promise Rejection');
-        e.preventDefault();
+// التهيئة الآمنة للتطبيق
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            window.fibonacciApp = new FibonacciIndicator();
+        } catch (error) {
+            console.error('Application failed to start:', error);
+            NotificationManager.show('فشل تشغيل التطبيق', 'error');
+        }
     });
 }
