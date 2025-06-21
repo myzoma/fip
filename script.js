@@ -1,3 +1,4 @@
+
 class SimpleFibonacciImprover {
     improveSignal(price, fibLevels, signals) {
         const confidence = this.calculateConfidence(price, fibLevels);
@@ -645,10 +646,7 @@ createCoinCard(coin) {
     hideError() {
         document.getElementById('errorMessage').style.display = 'none';
     }
-}
- hideError() {
-        document.getElementById('errorMessage').style.display = 'none';
-    }
+
     
     // إضافة الدوال الجديدة هنا ↓
     
