@@ -347,81 +347,82 @@ class FibonacciIndicator {
         });
     }
     
-    createCoinCard(coin) {
-        const card = document.createElement('div');
-        const signal = coin.signals[0]; // أخذ أول إشارة
-        const signalClass = signal.type === 'resistance_break' ? 'resistance-break' : 'support-break';
+   // تحديث دالة إنشاء البطاقة مع تحسين التنسيق
+createCoinCard(coin) {
+    const card = document.createElement('div');
+    const signal = coin.signals[0];
+    const signalClass = signal.type === 'resistance_break' ? 'resistance-break' : 'support-break';
+    
+    card.className = `coin-card ${signalClass}`;
+    
+    const changeClass = coin.change >= 0 ? 'change-positive' : 'change-negative';
+    const changeSymbol = coin.change >= 0 ? '+' : '';
+    
+    const signalText = signal.type === 'resistance_break' ? 'اختراق مقاومة' : 'كسر دعم';
+    const signalBadgeClass = signal.type === 'resistance_break' ? 'signal-resistance' : 'signal-support';
+    
+    const cleanSymbol = coin.symbol.replace('USDT', '').replace('-USDT', '');
+    
+    card.innerHTML = `
+        <div class="signal-badge ${signalBadgeClass}">${signalText}</div>
         
-        card.className = `coin-card ${signalClass}`;
+        <div class="coin-header">
+            <div class="coin-name">${cleanSymbol}</div>
+            <div class="coin-price">$${this.formatPrice(coin.price)}</div>
+        </div>
         
-        const changeClass = coin.change >= 0 ? 'change-positive' : 'change-negative';
-        const changeSymbol = coin.change >= 0 ? '+' : '';
-        
-        const signalText = signal.type === 'resistance_break' ? 'اختراق مقاومة' : 'كسر دعم';
-        const signalBadgeClass = signal.type === 'resistance_break' ? 'signal-resistance' : 'signal-support';
-        
-        // تنظيف اسم العملة من العملات المستقرة
-        const cleanSymbol = coin.symbol.replace('USDT', '').replace('-USDT', '');
-        
-        card.innerHTML = `
-            <div class="signal-badge ${signalBadgeClass}">${signalText}</div>
-            
-            <div class="coin-header">
-                <div class="coin-name">${cleanSymbol}</div>
-                <div class="coin-price">$${this.formatPrice(coin.price)}</div>
+        <div class="coin-info">
+            <div class="info-item">
+                <div class="info-label">نسبة التغيير</div>
+                <div class="info-value ${changeClass}">${changeSymbol}${coin.change.toFixed(2)}%</div>
             </div>
-            
-            <div class="coin-info">
-                <div class="info-item">
-                    <div class="info-label">نسبة التغيير</div>
-                    <div class="info-value ${changeClass}">${changeSymbol}${coin.change.toFixed(2)}%</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">الحجم</div>
-                    <div class="info-value">${this.formatVolume(coin.volume)}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">المستوى الحالي</div>
-                    <div class="info-value">${signal.level}%</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">سعر المستوى</div>
-                    <div class="info-value">$${this.formatPrice(signal.price)}</div>
-                </div>
+            <div class="info-item">
+                <div class="info-label">الحجم</div>
+                <div class="info-value">${this.formatVolume(coin.volume)}</div>
             </div>
-            
-            <div class="fibonacci-info">
-                <div class="fibonacci-level">
-                    <span class="level-name">الهدف التالي</span>
-                    <span class="level-value">${signal.nextTarget ? signal.nextTarget.ratio + '%' : 'غير محدد'}</span>
-                </div>
-                ${signal.nextTarget ? `
-                <div class="fibonacci-level">
-                    <span class="level-name">سعر الهدف</span>
-                    <span class="level-value">$${this.formatPrice(signal.nextTarget.price)}</span>
-                </div>
-                <div class="fibonacci-level">
-                    <span class="level-name">نوع المستوى</span>
-                    <span class="level-value">${signal.nextTarget.type === 'retracement' ? 'تصحيح' : 'امتداد'}</span>
-                </div>
-                <div class="fibonacci-level">
-                    <span class="level-name">الربح المحتمل</span>
-                    <span class="level-value">${this.calculatePotentialProfit(coin.price, signal.nextTarget.price)}%</span>
-                </div>
-                ` : ''}
-                <div class="fibonacci-level">
-                    <span class="level-name">أعلى سعر</span>
-                    <span class="level-value">$${this.formatPrice(coin.high52w)}</span>
-                </div>
-                <div class="fibonacci-level">
-                    <span class="level-name">أقل سعر</span>
-                    <span class="level-value">$${this.formatPrice(coin.low52w)}</span>
-                </div>
+            <div class="info-item">
+                <div class="info-label">المستوى الحالي</div>
+                <div class="info-value">${signal.level}%</div>
             </div>
-        `;
+            <div class="info-item">
+                <div class="info-label">سعر المستوى</div>
+                <div class="info-value">$${this.formatPrice(signal.price)}</div>
+            </div>
+        </div>
         
-        return card;
-    }
+        <div class="fibonacci-info">
+            <div class="fibonacci-level">
+                <span class="level-name">الهدف التالي</span>
+                <span class="level-value">${signal.nextTarget ? signal.nextTarget.ratio + '%' : 'غير محدد'}</span>
+            </div>
+            ${signal.nextTarget ? `
+            <div class="fibonacci-level">
+                <span class="level-name">سعر الهدف</span>
+                <span class="level-value">$${this.formatPrice(signal.nextTarget.price)}</span>
+            </div>
+            <div class="fibonacci-level">
+                <span class="level-name">نوع المستوى</span>
+                <span class="level-value">${signal.nextTarget.type === 'retracement' ? 'تصحيح' : 'امتداد'}</span>
+            </div>
+            <div class="fibonacci-level">
+                <span class="level-name">الربح المحتمل</span>
+                <span class="level-value ${this.calculatePotentialProfit(coin.price, signal.nextTarget.price).startsWith('+') ? 'change-positive' : 'change-negative'}">${this.calculatePotentialProfit(coin.price, signal.nextTarget.price)}%</span>
+            </div>
+            ` : ''}
+            <div class="fibonacci-level">
+                <span class="level-name">أعلى سعر (50 يوم)</span>
+                <span class="level-value">$${this.formatPrice(coin.high52w)}</span>
+            </div>
+            <div class="fibonacci-level">
+                <span class="level-name">أقل سعر (50 يوم)</span>
+                <span class="level-value">$${this.formatPrice(coin.low52w)}</span>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
+
     
     // تحسين تنسيق الأسعار
     formatPrice(price) {
