@@ -29,7 +29,9 @@ class FibonacciIndicator {
         this.coins = [];
         this.filteredCoins = [];
         this.currentFilter = 'all';
-        
+         // إضافة متغيرات التتبع الجديدة ← هنا
+    this.trackedBreakouts = JSON.parse(localStorage.getItem('trackedBreakouts')) || [];
+    this.trackedBreakdowns = JSON.parse(localStorage.getItem('trackedBreakdowns')) || [];
         // مستويات فيبوناتشي المصححة
         this.fibonacciRetracements = [0, 23.6, 38.2, 50, 61.8, 76.4, 100];
         this.fibonacciExtensions = [61.8, 100, 138.2, 161.8, 200, 261.8];
@@ -644,6 +646,125 @@ createCoinCard(coin) {
         document.getElementById('errorMessage').style.display = 'none';
     }
 }
+ hideError() {
+        document.getElementById('errorMessage').style.display = 'none';
+    }
+    
+    // إضافة الدوال الجديدة هنا ↓
+    
+    // دالة حفظ الاختراقات
+    addToTracking(coin, signalType) {
+        const entry = {
+            symbol: coin.symbol,
+            price: coin.price,
+            timestamp: Date.now(),
+            breakLevel: coin.signals[0].level,
+            breakPrice: coin.signals[0].price,
+            nextTarget: coin.signals[0].nextTarget,
+            signalType: signalType
+        };
+        
+        if (signalType === 'resistance_breakout') {
+            if (!this.trackedBreakouts.find(item => item.symbol === coin.symbol)) {
+                this.trackedBreakouts.push(entry);
+                localStorage.setItem('trackedBreakouts', JSON.stringify(this.trackedBreakouts));
+                console.log(`✅ تم حفظ اختراق: ${coin.symbol}`);
+            }
+        } else if (signalType === 'support_break') {
+            if (!this.trackedBreakdowns.find(item => item.symbol === coin.symbol)) {
+                this.trackedBreakdowns.push(entry);
+                localStorage.setItem('trackedBreakdowns', JSON.stringify(this.trackedBreakdowns));
+                console.log(`✅ تم حفظ كسر: ${coin.symbol}`);
+            }
+        }
+    }
+
+    // دالة فحص شروط الخروج
+    checkExitConditions(coin) {
+        const currentPrice = coin.price;
+        
+        this.trackedBreakouts = this.trackedBreakouts.filter(tracked => {
+            if (tracked.symbol === coin.symbol) {
+                const levels = this.calculateFibonacciLevels(coin.high52w, coin.low52w, currentPrice);
+                const supportLevels = Object.values(levels.retracements)
+                    .filter(level => level < tracked.breakPrice)
+                    .sort((a, b) => b - a);
+                
+                const nearestSupport = supportLevels[0];
+                
+                if (nearestSupport && currentPrice < nearestSupport * 0.995) {
+                    console.log(`🔴 إزالة ${tracked.symbol} - كسر دعم`);
+                    return false;
+                }
+            }
+            return true;
+        });
+        
+        this.trackedBreakdowns = this.trackedBreakdowns.filter(tracked => {
+            if (tracked.symbol === coin.symbol) {
+                const levels = this.calculateFibonacciLevels(coin.high52w, coin.low52w, currentPrice);
+                const resistanceLevels = Object.values(levels.retracements)
+                    .filter(level => level > tracked.breakPrice)
+                    .sort((a, b) => a - b);
+                
+                const nearestResistance = resistanceLevels[0];
+                
+                if (nearestResistance && currentPrice > nearestResistance * 1.005) {
+                    console.log(`🔴 إزالة ${tracked.symbol} - اخترق مقاومة`);
+                    return false;
+                }
+            }
+            return true;
+        });
+        
+        localStorage.setItem('trackedBreakouts', JSON.stringify(this.trackedBreakouts));
+        localStorage.setItem('trackedBreakdowns', JSON.stringify(this.trackedBreakdowns));
+    }
+
+    // دالة إضافة المحفوظة للعرض
+    addTrackedToCoins() {
+        this.trackedBreakouts.forEach(tracked => {
+            if (!this.coins.find(coin => coin.symbol === tracked.symbol)) {
+                this.coins.push({
+                    symbol: tracked.symbol,
+                    price: tracked.price,
+                    change: 0,
+                    volume: 0,
+                    signals: [{
+                        type: 'resistance_break',
+                        level: tracked.breakLevel,
+                        price: tracked.breakPrice,
+                        nextTarget: tracked.nextTarget
+                    }],
+                    fibonacciData: { confidence: 85, reliable: true },
+                    high52w: tracked.price * 1.2,
+                    low52w: tracked.price * 0.8,
+                    isTracked: true
+                });
+            }
+        });
+        
+        this.trackedBreakdowns.forEach(tracked => {
+            if (!this.coins.find(coin => coin.symbol === tracked.symbol)) {
+                this.coins.push({
+                    symbol: tracked.symbol,
+                    price: tracked.price,
+                    change: 0,
+                    volume: 0,
+                    signals: [{
+                        type: 'support_break',
+                        level: tracked.breakLevel,
+                        price: tracked.breakPrice,
+                        nextTarget: tracked.nextTarget
+                    }],
+                    fibonacciData: { confidence: 85, reliable: true },
+                    high52w: tracked.price * 1.2,
+                    low52w: tracked.price * 0.8,
+                    isTracked: true
+                });
+            }
+        });
+    }
 
 // وظائف مساعدة متقدمة
 class FibonacciUtils {
