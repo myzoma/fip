@@ -318,35 +318,17 @@ for (let ratio of [...this.fibonacciRetracements].reverse()) {
             }
         }
         
-       this.fibonacciRetracements.reverse(); // إعادة الترتيب الأصلي
+    this.fibonacciRetracements.reverse(); // إعادة الترتيب الأصلي
 
-// إصلاح أنواع الإشارات وإضافة التحقق
-if (levels.signals.length > 0) {
-    const signal = levels.signals[0];
-    
-    console.log(`🔍 فحص: السعر ${currentPrice}, المستوى ${signal.price}, النوع ${signal.type}`);
-    
-    // إصلاح نوع الإشارة
+// إصلاح بسيط لأنواع الإشارات
+levels.signals.forEach(signal => {
     if (signal.type === 'resistance_break') {
         signal.type = 'resistance_breakout';
         signal.signalType = 'resistance_breakout';
     } else if (signal.type === 'support_break') {
         signal.signalType = 'support_break';
     }
-    
-    // تحقق إضافي للتأكد من صحة الإشارة
-    if (signal.signalType === 'resistance_breakout' && currentPrice <= signal.price) {
-        console.warn(`🔧 تصحيح: تغيير من resistance إلى support`);
-        signal.type = 'support_break';
-        signal.signalType = 'support_break';
-    }
-    
-    if (signal.signalType === 'support_break' && currentPrice >= signal.price) {
-        console.warn(`🔧 تصحيح: تغيير من support إلى resistance`);
-        signal.type = 'resistance_breakout';
-        signal.signalType = 'resistance_breakout';
-    }
-}
+});
 
 return levels;
 
