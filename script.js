@@ -266,52 +266,50 @@ init() {
         signals: []
     };
 
-    // حساب مستويات التصحيح
+    // حساب المستويات...
     this.fibonacciRetracements.forEach(ratio => {
         const level = high - (range * ratio / 100);
         levels.retracements[ratio] = level;
     });
 
-    // حساب مستويات الامتداد
     this.fibonacciExtensions.forEach(ratio => {
         const level = high + (range * (ratio - 100) / 100);
         levels.extensions[ratio] = level;
     });
 
-    // تحديد الإشارات
-    const tolerance = currentPrice * 0.005; // 0.5% tolerance
+    // شرط مرن للإشارات
+    const tolerance = currentPrice * 0.01; // زيادة إلى 1%
 
-    // فحص اختراق المقاومة (مستويات التصحيح)
+    // فحص الإشارات مع نطاق مرن
     for (let ratio of this.fibonacciRetracements) {
         const level = levels.retracements[ratio];
-        if (currentPrice > level && currentPrice <= level + tolerance) {
-            const nextLevel = this.getNextResistanceLevel(ratio, levels.retracements, levels.extensions);
-            levels.signals.push({
-                type: 'resistance_breakout', // غيّر هذا أيضاً
-                level: ratio,
-                price: level,
-                nextTarget: nextLevel
-            });
+        const distance = Math.abs(currentPrice - level);
+        
+        if (distance <= tolerance) {
+            if (currentPrice >= level) {
+                // اختراق مقاومة
+                const nextLevel = this.getNextResistanceLevel(ratio, levels.retracements, levels.extensions);
+                levels.signals.push({
+                    type: 'resistance_breakout',
+                    level: ratio,
+                    price: level,
+                    nextTarget: nextLevel
+                });
+            } else {
+                // كسر دعم
+                const nextLevel = this.getNextSupportLevel(ratio, levels.retracements);
+                levels.signals.push({
+                    type: 'support_break',
+                    level: ratio,
+                    price: level,
+                    nextTarget: nextLevel
+                });
+            }
             break;
         }
     }
 
-    // فحص كسر الدعم (مستويات التصحيح)
-    for (let ratio of [...this.fibonacciRetracements].reverse()) { // ← هذا هو الإصلاح
-        const level = levels.retracements[ratio];
-        if (currentPrice < level && currentPrice >= level - tolerance) {
-            const nextLevel = this.getNextSupportLevel(ratio, levels.retracements);
-            levels.signals.push({
-                type: 'support_break',
-                level: ratio,
-                price: level,
-                nextTarget: nextLevel
-            });
-            break;
-        }
-    }
-
-    return levels; // احذف سطر reverse() الأخير
+    return levels;
 }
 
     
