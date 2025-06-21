@@ -258,45 +258,50 @@ init() {
         }
     }
     
- calculateFibonacciLevels(high, low, currentPrice) {
-    const range = high - low;
-    const levels = {
-        retracements: {},
-        extensions: {},
-        signals: []
-    };
-
-    // حساب المستويات...
-    this.fibonacciRetracements.forEach(ratio => {
-        const level = high - (range * ratio / 100);
-        levels.retracements[ratio] = level;
-    });
-
-    this.fibonacciExtensions.forEach(ratio => {
-        const level = high + (range * (ratio - 100) / 100);
-        levels.extensions[ratio] = level;
-    });
-
-    // شرط مرن للإشارات
-    const tolerance = currentPrice * 0.01; // زيادة إلى 1%
-
-    // فحص الإشارات مع نطاق مرن
-    for (let ratio of this.fibonacciRetracements) {
-        const level = levels.retracements[ratio];
-        const distance = Math.abs(currentPrice - level);
+calculateFibonacciLevels(high, low, currentPrice) {
+        const range = high - low;
+        const levels = {
+            retracements: {},
+            extensions: {},
+            signals: []
+        };
         
-        if (distance <= tolerance) {
-            if (currentPrice >= level) {
-                // اختراق مقاومة
+        // حساب مستويات التصحيح
+        this.fibonacciRetracements.forEach(ratio => {
+            const level = high - (range * ratio / 100);
+            levels.retracements[ratio] = level;
+        });
+        
+        // حساب مستويات الامتداد
+        this.fibonacciExtensions.forEach(ratio => {
+            const level = high + (range * (ratio - 100) / 100);
+            levels.extensions[ratio] = level;
+        });
+        
+        // تحديد الإشارات
+        const tolerance = currentPrice * 0.005; // 0.5% tolerance
+        
+        // فحص اختراق المقاومة (مستويات التصحيح)
+        for (let ratio of this.fibonacciRetracements) {
+            const level = levels.retracements[ratio];
+            if (currentPrice > level && currentPrice <= level + tolerance) {
+                // العثور على المستوى التالي
                 const nextLevel = this.getNextResistanceLevel(ratio, levels.retracements, levels.extensions);
                 levels.signals.push({
-                    type: 'resistance_breakout',
+                    type: 'resistance_break',
                     level: ratio,
                     price: level,
                     nextTarget: nextLevel
                 });
-            } else {
-                // كسر دعم
+                break;
+            }
+        }
+        
+        // فحص كسر الدعم (مستويات التصحيح)
+        for (let ratio of this.fibonacciRetracements.reverse()) {
+            const level = levels.retracements[ratio];
+            if (currentPrice < level && currentPrice >= level - tolerance) {
+                // العثور على المستوى التالي
                 const nextLevel = this.getNextSupportLevel(ratio, levels.retracements);
                 levels.signals.push({
                     type: 'support_break',
@@ -304,14 +309,14 @@ init() {
                     price: level,
                     nextTarget: nextLevel
                 });
+                break;
             }
-            break;
         }
+        
+        this.fibonacciRetracements.reverse(); // إعادة الترتيب الأصلي
+        
+        return levels;
     }
-
-    return levels;
-}
-
     
    getNextResistanceLevel(currentRatio, retracements, extensions) {
     const ratios = this.fibonacciRetracements.sort((a, b) => a - b);
