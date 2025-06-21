@@ -557,56 +557,6 @@ createCoinCard(coin) {
             </div>
         </div>
         
-        createCoinCard(coin) {
-    const card = document.createElement('div');
-    const signal = coin.signals[0];
-    const signalClass = signal.type === 'resistance_break' ? 'resistance-break' : 'support-break';
-    
-    card.className = `coin-card ${signalClass}`;
-    
-    const changeClass = coin.change >= 0 ? 'change-positive' : 'change-negative';
-    const changeSymbol = coin.change >= 0 ? '+' : '';
-    
-    const signalText = signal.type === 'resistance_break' ? 'اختراق مقاومة' : 'كسر دعم';
-    const signalBadgeClass = signal.type === 'resistance_break' ? 'signal-resistance' : 'signal-support';
-    
-    const cleanSymbol = coin.symbol.replace('-USDT', '').replace('USDT', '').replace('-', '');
-    
-    // إنشاء HTML لمستويات فيبوناتشي المحدثة
-    const fibonacciLevelsHTML = this.renderFibonacciLevels(coin);
-    
-    card.innerHTML = `
-        <div class="signal-badge ${signalBadgeClass}">
-            ${signalText} 
-            <span style="background: #00ff00; color: black; padding: 2px 6px; border-radius: 10px; font-size: 0.8em; margin-right: 5px;">
-                ${Math.round(coin.fibonacciData.confidence)}%
-            </span>
-        </div>
-        
-        <div class="coin-header">
-            <div class="coin-name">${cleanSymbol}</div>
-            <div class="coin-price">$${this.formatPrice(coin.price)}</div>
-        </div>
-        
-        <div class="coin-info">
-            <div class="info-item">
-                <div class="info-label">نسبة التغيير</div>
-                <div class="info-value ${changeClass}">${changeSymbol}${coin.change.toFixed(2)}%</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">الحجم</div>
-                <div class="info-value">${this.formatVolume(coin.volume)}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">المستوى الحالي</div>
-                <div class="info-value">${signal.level}%</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">سعر المستوى</div>
-                <div class="info-value">$${this.formatPrice(signal.price)}</div>
-            </div>
-        </div>
-        
         <!-- المستويات المحدثة مع التصنيف -->
         ${fibonacciLevelsHTML}
         
