@@ -281,20 +281,23 @@ init() {
     // تحديد الإشارات
     const tolerance = currentPrice * 0.005; // 0.5% tolerance
 
-    // فحص اختراق المقاومة (مستويات التصحيح)
-    for (let ratio of this.fibonacciRetracements) {
-        const level = levels.retracements[ratio];
-        if (currentPrice > level && currentPrice <= level + tolerance) {
-            const nextLevel = this.getNextResistanceLevel(ratio, levels.retracements, levels.extensions);
-            levels.signals.push({
-                type: 'resistance_breakout', // ← غيّر هذا فقط
-                level: ratio,
-                price: level,
-                nextTarget: nextLevel
-            });
-            break;
-        }
+   // فحص اختراق المقاومة (مستويات التصحيح)
+for (let ratio of this.fibonacciRetracements) {
+    const level = levels.retracements[ratio];
+    
+    // الشرط الجديد: السعر قريب من المستوى أو أعلى منه قليلاً
+    if (currentPrice >= level - tolerance && currentPrice <= level + tolerance * 2) {
+        const nextLevel = this.getNextResistanceLevel(ratio, levels.retracements, levels.extensions);
+        levels.signals.push({
+            type: 'resistance_breakout',
+            level: ratio,
+            price: level,
+            nextTarget: nextLevel
+        });
+        break;
     }
+}
+
 
     // فحص كسر الدعم (مستويات التصحيح)
     for (let ratio of [...this.fibonacciRetracements].reverse()) {
